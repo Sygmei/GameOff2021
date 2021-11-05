@@ -1,0 +1,18 @@
+id: "GameOff2021"
+name: "GameOff2021"
+version: "0.1.0"
+authors: ["Sygmei", "Mari0nV", "Darnagof", "Irio"]
+description: "Submission for Game Off 2021"
+obengine_version: "0.5.0"
+license: "MIT"
+exclude: [".gitignore"]
+source: "https://github.com/Sygmei/GameOff2021"
+
+urls:
+    homepage: "https://github.com/Sygmei/GameOff2021"
+    readme: "https://github.com/Sygmei/GameOff2021/README.md"
+    license: "https://github.com/Sygmei/GameOff2021/tree/master/LICENSE"
+
+mounts:
+    scenes: "root://Scenes"
+    objects: "root://GameObjects"
