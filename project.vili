@@ -16,3 +16,5 @@ urls:
 mounts:
     scenes: "root://Scenes"
     objects: "root://GameObjects"
+    scripts: "root://Scripts"
+    sprites: "root://Sprites"

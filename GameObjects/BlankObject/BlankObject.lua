@@ -1,6 +1,13 @@
+Items = require "scripts://Items";
+
 local i = 0;
 
 function Local.Init()
+    playerInventory = Engine.Scene:createGameObject("Inventory")({pos={x=0,y=0}});
+    playerInventory:AddItem(Items.CPU);
+    playerInventory:AddItem(Items.RAM_2GB);
+    playerInventory:AddItem(Items.CPU);
+    playerInventory:RemoveItem(1);
     jobManager = Engine.Scene:createGameObject("JobManager")({});
     jobManager:AddNewJob("C++ course lvl 1");
     jobManager:AddNewJob("Add memory leak to Google");
