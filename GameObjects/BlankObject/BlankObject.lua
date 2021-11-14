@@ -8,6 +8,7 @@ function Local.Init()
     playerInventory:AddItem(Items.RAM_2GB);
     playerInventory:AddItem(Items.CPU);
     playerInventory:RemoveItem(1);
+    playerInventory:AddItem(Items.Beeper);
     jobManager = Engine.Scene:createGameObject("JobManager")({});
     jobManager:AddNewJob("C++ course lvl 1");
     jobManager:AddNewJob("Add memory leak to Google");

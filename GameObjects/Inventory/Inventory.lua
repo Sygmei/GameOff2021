@@ -5,6 +5,7 @@ local _hold_control = false;
 local GAP_BETWEEN_ITEMS = 0.05; --SceneUnits
 local ITEM_SPRITE_SIZE = obe.Transform.UnitVector(0.1, 0.1); --SceneUnits
 local SELECTION_SPRITE = "sprites://item_select.png";
+-- TODO Line break
 
 function Local.Init(pos)
     This.SceneNode:setPosition(obe.Transform.UnitVector(pos.x, pos.y, obe.Transform.Units.SceneUnits));
@@ -24,6 +25,7 @@ function loadItem(item)
         sprite = Engine.Scene:createSprite(),
         on_remove = item.on_remove or function()end,
         on_acquire = item.on_acquire or function()end,
+        use = item.use or function()end,
         selected = false,
         selection_sprite = Engine.Scene:createSprite()
     };
@@ -36,12 +38,24 @@ function loadItem(item)
 end
 
 function Object:RemoveItem(index)
-    local to_remove = _inventory[index]
-    if to_remove == nil then return false end;
+    Object:RemoveItems({index});
+end
 
-    Engine.Scene:removeSprite(to_remove.sprite:getId());
-    to_remove:on_remove(Object);
-    table.remove(_inventory, index);
+function Object:RemoveItems(indexes)
+    for _, i in ipairs(indexes) do
+        if _inventory[i] ~= nil then
+            _inventory[i]:on_remove(Object);
+            Engine.Scene:removeSprite(_inventory[i].sprite:getId());
+            Engine.Scene:removeSprite(_inventory[i].selection_sprite:getId());
+            _inventory[i] = nil;
+        end
+    end
+    for i = #_inventory, 1, -1 do
+        if _inventory[i] == nil then
+            table.remove(_inventory, i);
+            i = i + 1;
+        end
+    end
     UpdateView();
 end
 
@@ -84,6 +98,32 @@ function Event.Keys.LControl(event)
     end
 end
 
+-- Use item
+function Event.Keys.Space(event)
+    if event.state == obe.Input.InputButtonState.Pressed then
+        for _, item in ipairs(_inventory) do
+            if item.selected then
+                item.use();
+            end
+        end
+    end
+end
+
+-- Sell item
+function Event.Keys.S(event)
+    if event.state == obe.Input.InputButtonState.Pressed then
+        local to_remove = {}
+        for i, item in ipairs(_inventory) do
+            if item.selected then
+                -- TODO add money to player
+                table.insert(to_remove, i);
+            end
+        end
+        Object:RemoveItems(to_remove);
+    end
+end
+
+-- Select item
 function Event.Cursor.Press(event)
     local click_pos = obe.Transform.UnitVector(event.x, event.y, obe.Transform.Units.ViewPixels);
     local item_clicked = false;
