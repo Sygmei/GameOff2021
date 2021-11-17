@@ -1,20 +1,23 @@
+local MoneyEvents = UserEvent.Money();
+
 local _inventory = {};
-local _capacity = 5;
+local _capacity = 14;
 local _hold_control = false;
 
 local GAP_BETWEEN_ITEMS = 0.05; --SceneUnits
 local ITEM_SPRITE_SIZE = obe.Transform.UnitVector(0.1, 0.1); --SceneUnits
 local SELECTION_SPRITE = "sprites://item_select.png";
--- TODO Line break
+local ITEMS_PER_LINE = 7;
+local GAP_BETWEEN_LINES = 0.1; --SceneUnits
 
 function Local.Init(pos)
     This.SceneNode:setPosition(obe.Transform.UnitVector(pos.x, pos.y, obe.Transform.Units.SceneUnits));
 end
 
 function Object:AddItem(item)
-    if #_inventory+1 >= _capacity then return false end;
+    if #_inventory >= _capacity then return false end;
     new_item = loadItem(item);
-    _inventory[#_inventory+1] = new_item;
+    table.insert(_inventory, new_item);
     new_item:on_acquire(Object);
     UpdateView();
 end
@@ -27,7 +30,8 @@ function loadItem(item)
         on_acquire = item.on_acquire or function()end,
         use = item.use or function()end,
         selected = false,
-        selection_sprite = Engine.Scene:createSprite()
+        selection_sprite = Engine.Scene:createSprite(),
+        sell_price = item.sell_price or 0
     };
     new_item.sprite:loadTexture(item.texture);
     new_item.sprite:setSize(ITEM_SPRITE_SIZE);
@@ -42,18 +46,18 @@ function Object:RemoveItem(index)
 end
 
 function Object:RemoveItems(indexes)
+    if #indexes <= 0 then return end;
     for _, i in ipairs(indexes) do
         if _inventory[i] ~= nil then
             _inventory[i]:on_remove(Object);
             Engine.Scene:removeSprite(_inventory[i].sprite:getId());
             Engine.Scene:removeSprite(_inventory[i].selection_sprite:getId());
-            _inventory[i] = nil;
+            _inventory[i].to_remove = true;
         end
     end
     for i = #_inventory, 1, -1 do
-        if _inventory[i] == nil then
+        if _inventory[i].to_remove == true then
             table.remove(_inventory, i);
-            i = i + 1;
         end
     end
     UpdateView();
@@ -77,9 +81,14 @@ function Object:Count()
 end
 
 function UpdateView()
+    local line = 0;
+    local line_pos = 0;
     for i, item in ipairs(_inventory) do
-        item.sprite:setPosition(This.SceneNode:getPosition() + obe.Transform.UnitVector((i-1)*(ITEM_SPRITE_SIZE.x+GAP_BETWEEN_ITEMS), 0, obe.Transform.Units.SceneUnits));
-        item.selection_sprite:setPosition(This.SceneNode:getPosition() + obe.Transform.UnitVector((i-1)*(ITEM_SPRITE_SIZE.x+GAP_BETWEEN_ITEMS), 0, obe.Transform.Units.SceneUnits));
+        line = i // (ITEMS_PER_LINE + 1);
+        line_pos = (i-1) % ITEMS_PER_LINE;
+        local sprite_pos = This.SceneNode:getPosition() + obe.Transform.UnitVector((line_pos)*(ITEM_SPRITE_SIZE.x+GAP_BETWEEN_ITEMS), line*(ITEM_SPRITE_SIZE.y+GAP_BETWEEN_LINES), obe.Transform.Units.SceneUnits)
+        item.sprite:setPosition(sprite_pos);
+        item.selection_sprite:setPosition(sprite_pos);
     end
 end
 
@@ -115,7 +124,7 @@ function Event.Keys.S(event)
         local to_remove = {}
         for i, item in ipairs(_inventory) do
             if item.selected then
-                -- TODO add money to player
+                MoneyEvents:trigger("Gained", {amount = item.sell_price});
                 table.insert(to_remove, i);
             end
         end

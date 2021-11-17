@@ -10,5 +10,5 @@ View:
     referential:"TopLeft"
 
 GameObjects:
-    blank:
-        type:"BlankObject"
+    game_manager:
+        type:"GameManager"
