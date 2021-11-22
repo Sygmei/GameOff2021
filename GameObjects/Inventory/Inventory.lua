@@ -12,6 +12,12 @@ local GAP_BETWEEN_LINES = 0.1; --SceneUnits
 
 function Local.Init(pos)
     This.SceneNode:setPosition(obe.Transform.UnitVector(pos.x, pos.y, obe.Transform.Units.SceneUnits));
+    Engine.Scene:createGameObject("Button")({
+        pos=obe.Transform.UnitVector(1, 1),
+        label="Sell",
+        on_press=function()
+            Object:SellSelection();
+            end});
 end
 
 function Object:AddItem(item)
@@ -119,16 +125,20 @@ function Event.Keys.Space(event)
 end
 
 -- Sell item
-function Event.Keys.S(event)
-    if event.state == obe.Input.InputButtonState.Pressed then
-        local to_remove = {}
-        for i, item in ipairs(_inventory) do
-            if item.selected then
-                MoneyEvents:trigger("Gained", {amount = item.sell_price});
-                table.insert(to_remove, i);
-            end
+function Object:SellSelection()
+    local to_remove = {}
+    for i, item in ipairs(_inventory) do
+        if item.selected then
+            MoneyEvents:trigger("Gained", {amount = item.sell_price});
+            table.insert(to_remove, i);
         end
-        Object:RemoveItems(to_remove);
+    end
+    Object:RemoveItems(to_remove);
+end
+
+function Event.Keys.S(event)
+    if event.state == obe.Input.InputButtonState.Pressed then      
+        Object:SellSelection();
     end
 end
 
