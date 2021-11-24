@@ -37,7 +37,14 @@ function Local.Init(pos, label, size, texture, on_press)
 end
 
 function Object:SetEnabled(enable)
-    --TODO gray out sprite
+    if enable == false then
+        Object.sprite:setColor(obe.Graphics.Color.Gray);
+        _canvas_text.color = "#888"
+    else
+        Object.sprite:setColor(obe.Graphics.Color(255, 255, 255));
+        _canvas_text.color = "#FFF"
+    end
+    _canvas:render(_canvas_sprite);
     _enabled = enable;
 end
 

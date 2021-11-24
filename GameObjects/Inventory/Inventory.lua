@@ -3,6 +3,7 @@ local MoneyEvents = UserEvent.Money();
 local _inventory = {};
 local _capacity = 14;
 local _hold_control = false;
+local _sell_button = nil;
 
 local GAP_BETWEEN_ITEMS = 0.05; --SceneUnits
 local ITEM_SPRITE_SIZE = obe.Transform.UnitVector(0.1, 0.1); --SceneUnits
@@ -12,12 +13,13 @@ local GAP_BETWEEN_LINES = 0.1; --SceneUnits
 
 function Local.Init(pos)
     This.SceneNode:setPosition(obe.Transform.UnitVector(pos.x, pos.y, obe.Transform.Units.SceneUnits));
-    Engine.Scene:createGameObject("Button")({
+    _sell_button = Engine.Scene:createGameObject("Button")({
         pos=obe.Transform.UnitVector(1, 1),
         label="Sell",
         on_press=function()
             Object:SellSelection();
             end});
+    _sell_button:SetEnabled(false);
 end
 
 function Object:AddItem(item)
@@ -105,6 +107,16 @@ function UnselectAll()
     end
 end
 
+function GetSelectedItems()
+    local selected = {}
+    for _, item in ipairs(_inventory) do
+        if item.selected then
+            table.insert(selected, item);
+        end
+    end
+    return selected;
+end
+
 function Event.Keys.LControl(event)
     if event.state == obe.Input.InputButtonState.Pressed then
         _hold_control = true;
@@ -134,10 +146,11 @@ function Object:SellSelection()
         end
     end
     Object:RemoveItems(to_remove);
+    _sell_button:SetEnabled(false);
 end
 
 function Event.Keys.S(event)
-    if event.state == obe.Input.InputButtonState.Pressed then      
+    if event.state == obe.Input.InputButtonState.Pressed then
         Object:SellSelection();
     end
 end
@@ -165,5 +178,6 @@ function Event.Cursor.Press(event)
     if not item_clicked then
         UnselectAll();
     end
+    _sell_button:SetEnabled(#GetSelectedItems() > 0);
 
 end
